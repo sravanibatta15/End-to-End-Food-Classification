@@ -1,0 +1,6 @@
+2025-11-16 12:48:48,597 - INFO - Constructor started
+2025-11-16 12:48:48,613 - INFO - len:34
+2025-11-16 12:48:48,613 - INFO - columns:['apple_pie', 'Baked Potato', 'burger', 'butter_naan', 'chai', 'chapati', 'cheesecake', 'chicken_curry', 'chole_bhature', 'Crispy Chicken', 'dal_makhani', 'dhokla', 'Donut', 'fried_rice', 'Fries', 'Hot Dog', 'ice_cream', 'idli', 'jalebi', 'kaathi_rolls', 'kadai_paneer', 'kulfi', 'masala_dosa', 'momos', 'omelette', 'paani_puri', 'pakode', 'pav_bhaji', 'pizza', 'samosa', 'Sandwich', 'sushi', 'Taco', 'Taquito']
+2025-11-16 12:48:49,461 - INFO - Original Image shape  : (920, 736, 3)
+2025-11-16 12:48:49,461 - INFO - Resized Image shape : (256, 256, 3)
+2025-11-16 12:48:49,461 - INFO - Perfect Model Input : (1, 256, 256, 3)

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Food Classifier</title>
+
+<style>
+  :root{
+    --accent:#00bfff;
+    --muted:#6b7280;
+    --card-bg:#ffffff;
+    --page-bg:#f3f6fb;
+    --left-bg:#111217;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--page-bg);
+    display:flex;
+    min-height:100vh;
+    color:#111827;
+  }
+
+  /* LEFT - developer & controls */
+  .left {
+    width:24%;
+    min-width:240px;
+    background:var(--left-bg);
+    color:#fff;
+    padding:28px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    align-items:center;
+  }
+
+  .profile {
+    text-align:center;
+    width:100%;
+  }
+  .profile img{
+    width:140px;
+    height:140px;
+    object-fit:cover;
+    border-radius:50%;
+    border:4px solid var(--accent);
+    display:block;
+    margin:0 auto 12px;
+  }
+  .profile h1{ margin:4px 0 0; font-size:20px; color:var(--accent) }
+  .profile p{ margin:4px 0 0; color:#cbd5e1; font-size:13px }
+
+  .skills {
+    width:100%;
+    background:#161619;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+  }
+  .skills .chip{
+    display:inline-block;
+    background:var(--accent);
+    color:#000;
+    padding:6px 10px;
+    border-radius:999px;
+    margin:6px 6px 0 0;
+    font-size:12px;
+  }
+
+  .controls {
+    width:100%;
+    margin-top:8px;
+  }
+  .controls label{ display:block; color:#cbd5e1; font-size:13px; margin:8px 0 6px; }
+  .controls select, .controls input[type="file"]{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:#0f1113;
+    color:#fff;
+    font-size:14px;
+  }
+  .controls .model-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+  }
+  .model-btn{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:transparent;
+    color:#fff;
+    text-align:center;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .model-btn.active{
+    background:var(--accent);
+    color:#000;
+  }
+
+  /* CENTER - upload & preview */
+  .center {
+    width:38%;
+    padding:28px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    align-items:center;
+  }
+
+  .uploader {
+    width:100%;
+    background:var(--card-bg);
+    padding:18px;
+    border-radius:12px;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+  }
+
+  .preview {
+    width:100%;
+    height:420px;
+    border-radius:12px;
+    background:linear-gradient(180deg,#fafbff,#f1f6ff);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border:1px dashed #dbeafe;
+  }
+  .preview img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+
+  .upload-hint { color:var(--muted); font-size:14px; text-align:center; }
+
+  .predict-area{
+    width:100%;
+    display:flex;
+    gap:12px;
+    justify-content:center;
+  }
+  #predictBtn{
+    padding:12px 20px;
+    background:var(--accent);
+    color:#000;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  /* RIGHT - output */
+  .right {
+    width:38%;
+    padding:28px;
+  }
+
+  .card {
+    background:var(--card-bg);
+    padding:18px;
+    border-radius:12px;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    margin-bottom:18px;
+  }
+  .card h3{ margin:0 0 8px 0; color:#0f172a }
+  .stat-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .stat{
+    flex:1;
+    min-width:140px;
+    background:#f8fafc;
+    padding:10px;
+    border-radius:8px;
+    text-align:center;
+  }
+  .stat b{ display:block; font-size:13px; color:#0f172a }
+  .stat span{ color:var(--muted); font-size:14px }
+
+  table.cm{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:8px;
+  }
+  table.cm td, table.cm th{
+    border:1px solid #e6eefc;
+    padding:6px;
+    text-align:center;
+    background:#f8fbff;
+  }
+
+  .nutrition{
+    background:#f0fbff;
+    border-left:4px solid #00a3e0;
+    padding:10px;
+    border-radius:6px;
+  }
+
+  /* responsive */
+  @media (max-width:980px){
+    body{flex-direction:column;}
+    .left,.center,.right{width:100%}
+    .center .preview{height:300px}
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="profile">
+      <!-- place your profile image at static/profile.jpg or change src -->
+      <img src="{{ url_for('static', filename='profile.jpg') }}" alt="profile">
+      <h1>Siva Sai Sravani</h1>
+      <p style="margin-top:6px;color:#cbd5e1">AI/ML Engineer</p>
+    </div>
+
+    <div class="skills">
+      <h4 style="margin:0 0 8px 0;color:#cbd5e1">Skills</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span class="chip" style="background:#00eaff;padding:6px 10px;border-radius:999px;color:#000;font-weight:600;font-size:13px">Python</span>
+        <span class="chip" style="background:#00eaff;padding:6px 10px;border-radius:999px;color:#000;font-weight:600;font-size:13px">ML</span>
+        <span class="chip" style="background:#00eaff;padding:6px 10px;border-radius:999px;color:#000;font-weight:600;font-size:13px">DL</span>
+        <span class="chip" style="background:#00eaff;padding:6px 10px;border-radius:999px;color:#000;font-weight:600;font-size:13px">SQL</span>
+        <span class="chip" style="background:#00eaff;padding:6px 10px;border-radius:999px;color:#000;font-weight:600;font-size:13px">Flask</span>
+      </div>
+    </div>
+
+    <div class="controls" style="width:100%;margin-top:10px">
+      <label for="classSelect">Select Class</label>
+      <select id="classSelect">
+        <option value="">-- choose class --</option>
+        {% for c in classes %}
+          <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+
+      <label style="margin-top:12px">Select Model</label>
+      <div class="model-list" style="margin-top:6px">
+        <button class="model-btn" data-model="custom_models">Custom Model</button>
+        <button class="model-btn" data-model="resnet_models">ResNet Model</button>
+        <button class="model-btn" data-model="vgg16_models">VGG16 Model</button>
+      </div>
+
+      <p style="color:#9aa6b2;font-size:13px;margin-top:12px">Tip: choose class → choose model → go to middle to upload image → Predict</p>
+
+      <div style="width:100%; margin-top:12px;">
+        <div class="card" style="background:transparent; box-shadow:none; padding:0;">
+          <h4 style="color:#fff; margin:0 0 8px 0">Nutrition Preview</h4>
+          <div id="leftNutrition" class="nutrition" style="background:#0f172a; color:#cbd5e1;">
+            <p style="margin:0">Select a class to load nutrition.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="uploader">
+      <div class="preview" id="previewBox">
+        <div style="text-align:center;color:#64748b">
+          <div style="font-weight:700;font-size:16px">Image preview</div>
+          <div class="upload-hint">Upload an image (chai, cheesecake, etc.) to preview here</div>
+        </div>
+      </div>
+
+      <div style="width:100%;display:flex;gap:12px;align-items:center;justify-content:center">
+        <input id="fileInput" type="file" accept="image/*" style="width:60%;">
+        <div class="predict-area">
+          <button id="predictBtn">Predict</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="card">
+      <h3>Prediction Summary</h3>
+      <div id="summaryBlock" style="margin-top:8px">
+        <p style="color:#6b7280">No prediction yet.</p>
+      </div>
+    </div>
+
+    <div class="card" id="metricsCard" style="display:none">
+      <h3>Metrics</h3>
+      <div class="stat-row" id="metricsRow" style="margin-top:10px">
+        <!-- metrics injected here -->
+      </div>
+    </div>
+
+    <div class="card" id="cmCard" style="display:none">
+      <h3>Confusion Matrix</h3>
+      <div id="cmBox"></div>
+    </div>
+
+    <!-- NOTE: right-side nutrition card removed (nutrition will appear only on LEFT) -->
+  </div>
+
+<script>
+  // model selection
+  let selectedModel = null;
+  document.querySelectorAll('.model-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selectedModel = btn.dataset.model;
+      document.querySelectorAll('.model-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // preview image
+  const fileInput = document.getElementById('fileInput');
+  const previewBox = document.getElementById('previewBox');
+
+  fileInput.addEventListener('change', (e)=>{
+    const f = e.target.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    previewBox.innerHTML = `<img src="${url}" alt="preview">`;
+  });
+
+  // load nutrition when class select changes (left only)
+  const classSelect = document.getElementById('classSelect');
+  classSelect.addEventListener('change', async function(){
+    const val = this.value;
+    const leftBox = document.getElementById('leftNutrition');
+    // clear
+    leftBox.innerHTML = '<p style="margin:0">Loading...</p>';
+    if (!val) {
+      leftBox.innerHTML = '<p style="margin:0">Select a class to load nutrition.</p>';
+      return;
+    }
+    try {
+      const resp = await fetch('/get_nutrition?class=' + encodeURIComponent(val));
+      const data = await resp.json();
+      if (!data || Object.keys(data).length === 0) {
+        leftBox.innerHTML = '<p style="margin:0">Nutrition not available.</p>';
+        return;
+      }
+      // render nicely
+      leftBox.innerHTML = '';
+      for (const k of Object.keys(data)) {
+        const v = data[k];
+        leftBox.innerHTML += `
+          <p style="margin:6px 0; font-size:14px; color:#cbd5e1;">
+            <strong style="text-transform:capitalize">${k}:</strong>
+            <span style="color:#e6eef8; margin-left:6px">${v}</span>
+          </p>
+        `;
+      }
+    } catch (err) {
+      leftBox.innerHTML = '<p style="margin:0">Error loading nutrition</p>';
+      console.error(err);
+    }
+  });
+
+  // click predict
+  document.getElementById('predictBtn').addEventListener('click', async ()=>{
+    const selectedClass = document.getElementById('classSelect').value;
+    const file = fileInput.files[0];
+
+    if (!selectedClass) { alert('Please select a class'); return; }
+    if (!file) { alert('Please upload an image in middle panel'); return; }
+    if (!selectedModel) { alert('Please choose a model on left'); return; }
+
+    const form = new FormData();
+    form.append('file', file);
+    form.append('selected_class', selectedClass);
+    form.append('model_type', selectedModel);
+
+    // show loading
+    const summaryBlock = document.getElementById('summaryBlock');
+    summaryBlock.innerHTML = '<p style="color:#64748b">Predicting... please wait.</p>';
+    document.getElementById('metricsCard').style.display='none';
+    document.getElementById('cmCard').style.display='none';
+
+    try {
+      const resp = await fetch('/predict', { method:'POST', body: form });
+      const data = await resp.json();
+
+      if (!data || data.success === false) {
+        const err = data ? (data.error || JSON.stringify(data)) : 'Empty response';
+        summaryBlock.innerHTML = `<p style="color:#dc2626">Error: ${err}</p>`;
+        return;
+      }
+
+      // Summary
+      const sHtml = `
+        <p><strong>Selected class:</strong> ${data.selected_class || '-'}</p>
+        <p><strong>Predicted class:</strong> ${data.predicted_label || '-'}</p>
+        <p><strong>Model used:</strong> ${data.model_used || '-'}</p>
+        <p><strong>Model type:</strong> ${data.model_type || '-'}</p>
+        <p><strong>Confidence:</strong> ${(typeof data.confidence === 'number') ? (data.confidence*100).toFixed(2)+'%' : '-' }</p>
+      `;
+      summaryBlock.innerHTML = sHtml;
+
+      // Metrics (from class_metrics or classification_report if present)
+      const classMetrics = data.class_metrics || {};
+      // keep previous approach for quick metrics
+      const accuracy = classMetrics.accuracy !== undefined ? classMetrics.accuracy : null;
+      const precision = classMetrics.precision !== undefined ? classMetrics.precision : null;
+      const recall = classMetrics.recall !== undefined ? classMetrics.recall : null;
+      const f1 = classMetrics.f1_score !== undefined ? classMetrics.f1_score : null;
+
+      if (accuracy !== null || precision !== null || recall !== null || f1 !== null) {
+        document.getElementById('metricsCard').style.display='block';
+        const metricsRow = document.getElementById('metricsRow');
+        metricsRow.innerHTML = '';
+
+        const formatMetric = (val) => {
+          if (val === null || val === undefined) return '-';
+          if (typeof val === 'number') {
+            if (val <= 1) return (val * 100).toFixed(2) + '%';
+            return val;
+          }
+          return val;
+        };
+
+        const mk = (label, val) => {
+          return `<div class="stat"><b>${label}</b><span>${formatMetric(val)}</span></div>`;
+        };
+
+        metricsRow.insertAdjacentHTML('beforeend', mk('Accuracy', accuracy));
+        metricsRow.insertAdjacentHTML('beforeend', mk('Precision', precision));
+        metricsRow.insertAdjacentHTML('beforeend', mk('Recall', recall));
+        metricsRow.insertAdjacentHTML('beforeend', mk('F1 Score', f1));
+      } else {
+        document.getElementById('metricsCard').style.display='none';
+      }
+
+      // If server returned a classification_report (full text / object), render it in metricsCard if present
+      if (data.classification_report) {
+        // attempt to parse object vs string
+        let cr = data.classification_report;
+        let crHtml = '<div style="margin-top:8px; font-size:13px; color:#334155;">';
+        if (typeof cr === 'string') {
+          crHtml += `<pre style="white-space:pre-wrap; font-family:monospace;">${cr}</pre>`;
+        } else if (typeof cr === 'object') {
+          // object mapping label -> {precision, recall, f1, support}
+          crHtml += '<table style="width:100%; border-collapse:collapse;">';
+          crHtml += '<tr><th style="text-align:left">Label</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>';
+          for (const lbl of Object.keys(cr)) {
+            const r = cr[lbl];
+            if (typeof r === 'object') {
+              crHtml += `<tr>
+                <td style="text-align:left">${lbl}</td>
+                <td style="text-align:center">${r.precision !== undefined ? (r.precision<=1 ? (r.precision*100).toFixed(2)+'%' : r.precision) : '-'}</td>
+                <td style="text-align:center">${r.recall !== undefined ? (r.recall<=1 ? (r.recall*100).toFixed(2)+'%' : r.recall) : '-'}</td>
+                <td style="text-align:center">${r.f1_score !== undefined ? (r.f1_score<=1 ? (r.f1_score*100).toFixed(2)+'%' : r.f1_score) : (r.f1!==undefined ? r.f1 : '-')}</td>
+                <td style="text-align:center">${r.support !== undefined ? r.support : '-'}</td>
+              </tr>`;
+            }
+          }
+          crHtml += '</table>';
+        }
+        crHtml += '</div>';
+
+        // show metricsCard and append classification report
+        document.getElementById('metricsCard').style.display='block';
+        const metricsRow = document.getElementById('metricsRow');
+        // append at the end
+        metricsRow.insertAdjacentHTML('beforeend', `<div style="width:100%">${crHtml}</div>`);
+      }
+
+      // Confusion Matrix
+      const cm = data.confusion_matrix_full || data.confusion_matrix || null;
+      const labels = data.model_labels_order || null;
+      if (cm && Array.isArray(cm) && cm.length>0) {
+        document.getElementById('cmCard').style.display='block';
+        const cmBox = document.getElementById('cmBox');
+        let table = '<table class="cm">';
+        if (labels && Array.isArray(labels) && labels.length === cm.length) {
+          table += '<tr><th></th>';
+          labels.forEach(l => table += `<th>${l}</th>`);
+          table += '</tr>';
+          cm.forEach((row, i) => {
+            table += `<tr><th>${labels[i] || i}</th>`;
+            row.forEach(cell => table += `<td>${cell}</td>`);
+            table += '</tr>';
+          });
+        } else {
+          cm.forEach(row=>{
+            table += '<tr>';
+            row.forEach(cell=> table += `<td>${cell}</td>`);
+            table += '</tr>';
+          });
+        }
+        table += '</table>';
+        cmBox.innerHTML = table;
+      } else {
+        document.getElementById('cmCard').style.display='none';
+      }
+
+      // Nutrition: prefer predicted nutrition (from response). Update LEFT panel only.
+      const leftBox = document.getElementById('leftNutrition');
+      const nutrPred = data.nutrition_predicted || null;
+      const nutrSel = data.nutrition_selected || null;
+      const nutrToShow = (nutrPred && Object.keys(nutrPred).length>0) ? nutrPred : nutrSel;
+
+      if (!nutrToShow || Object.keys(nutrToShow).length === 0) {
+        leftBox.innerHTML = '<p style="margin:0">Nutrition not available.</p>';
+      } else {
+        leftBox.innerHTML = '';
+        for (const k of Object.keys(nutrToShow)) {
+          const v = nutrToShow[k];
+          leftBox.innerHTML += `
+            <p style="margin:6px 0; font-size:14px; color:#cbd5e1;">
+              <strong style="text-transform:capitalize">${k}:</strong>
+              <span style="color:#e6eef8; margin-left:6px">${v}</span>
+            </p>
+          `;
+        }
+      }
+
+    } catch (err) {
+      summaryBlock.innerHTML = `<p style="color:#dc2626">Error: ${err && err.message ? err.message : err}</p>`;
+      console.error(err);
+    }
+  });
+
+</script>
+
+</body>
+</html>
