@@ -100,7 +100,7 @@ This is a **CNN model built from scratch** without using pretrained weights.
 
 - Training & validation accuracy/loss.
 - Saved evaluation metrics in `Custom_Model.txt`.
-
+  
 ---
 
 ## 🏛️ 2. VGG16 Model (Transfer Learning)
