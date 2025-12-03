@@ -185,13 +185,7 @@ Example structure (`nutrition_data.json`):
     "fat": 10,
     "fiber": 2
   },
-  "burger": {
-    "calories": 295,
-    "protein": 17,
-    "carbohydrates": 30,
-    "fat": 13,
-    "fiber": 1
-  }
+
   // ... remaining 34 classes
 }
 
