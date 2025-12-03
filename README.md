@@ -194,3 +194,16 @@ Example structure (`nutrition_data.json`):
   }
   // ... remaining 34 classes
 }
+
+---
+
+## 👤 Support
+
+**Name:** Batta Siva Sai Sravani  
+📧 Email: **sivasaisravani@gmail.com**  
+📱 Phone: **8639868362**  
+🔗 LinkedIn: https://www.linkedin.com/in/siva-sai-sravani-007772286/  
+
+---
+
+### ⭐ If you like this project, kindly give this repository a star!
