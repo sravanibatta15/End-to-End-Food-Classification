@@ -174,23 +174,6 @@ For every class, the JSON file stores:
 - **Carbohydrates**
 - **Fat**
 
-Example structure (`nutrition_data.json`):
-
-```json
-{
-  "pizza": {
-    "calories": 266,
-    "protein": 11,
-    "carbohydrates": 33,
-    "fat": 10,
-    "fiber": 2
-  },
-
-  // ... remaining 34 classes
-}
-
----
-
 ## 👤 Support
 
 **Name:** Batta Siva Sai Sravani  
